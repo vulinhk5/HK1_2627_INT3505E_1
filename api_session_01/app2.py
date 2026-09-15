@@ -14,6 +14,9 @@ def create_student():
         "name": name,
         "gpa": body.get("gpa", 0.0)
     }
-    
+
     STUDENTS.append(student)
-    return {"id": ..., "name": ...}, 201
+    return {"id": student["id"], "name": student["name"]}, 201
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=True)
