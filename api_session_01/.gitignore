@@ -1,0 +1,44 @@
+# ==========================================
+# File tạm và cache của Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================================
+# Môi trường ảo (Virtual Environments)
+# ==========================================
+.venv/
+venv/
+env/
+ENV/
+
+# ==========================================
+# File chứa biến môi trường (Bảo mật)
+# ==========================================
+.env
+.env.local
+.env.*
+
+# ==========================================
+# Build, Packages và Testing
+# ==========================================
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Thư mục và file của các Editor / IDE / OS
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
