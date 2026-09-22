@@ -1,8 +1,6 @@
 from flask import Flask, jsonify, request
-
 app = Flask(__name__)
 
-# Pre-populated with your requested books
 _next = 8
 BOOKS = [
     {"id": 1, "title": "Demain", "author": "Hermann Hesse", "year": 1919},
@@ -16,45 +14,32 @@ BOOKS = [
 
 def find(bid):
     return next((b for b in BOOKS if b["id"] == bid), None)
-
-# -------------------------------------------------------------
-# 1. LIST + SEARCH (?q=...) + SORT (?sort=title)
-# -------------------------------------------------------------
+    
+#LIST+SEARCH+SORT
 @app.route("/books", methods=["GET"])
 def list_books():
     n = int(request.args.get("limit", 100))
     q = request.args.get("q", "").lower()
     sort_by = request.args.get("sort")
-    
-    # Create a working copy of the list to filter/sort
     results = BOOKS.copy()
-    
-    # (a) Search functionality: look in title or author
+    #search
     if q:
         results = [
             b for b in results 
             if q in b["title"].lower() or q in b["author"].lower()
         ]
-        
-    # (b) Sort functionality: sort alphabetically by title
+    #Sort
     if sort_by == "title":
         results = sorted(results, key=lambda x: x["title"].lower())
-        
     return jsonify(results[:n]), 200
-
-# -------------------------------------------------------------
-# 2. DETAIL
-# -------------------------------------------------------------
+#DETAIL
 @app.route("/books/<int:bid>", methods=["GET"])
 def get_book(bid):
     book = find(bid)
     if not book: 
         return {"error": "not found"}, 404
     return jsonify(book), 200
-
-# -------------------------------------------------------------
-# 3. CREATE + VALIDATION (year >= 1900)
-# -------------------------------------------------------------
+#CREATE+VALIDATION
 @app.route("/books", methods=["POST"])
 def create_book():
     global _next
@@ -62,12 +47,8 @@ def create_book():
     t = body.get("title")
     a = body.get("author")
     y = body.get("year")
-    
-    # Validate required fields
     if not t or not a:
         return {"error": "need title+author"}, 400
-        
-    # (c) Validate 'year' is present, is a number, and >= 1900
     if y is None:
         return {"error": "need year"}, 400
     try:
@@ -82,10 +63,7 @@ def create_book():
     BOOKS.append(book)
     
     return jsonify(book), 201, {"Location": f"/books/{book['id']}"}
-
-# -------------------------------------------------------------
-# 4. UPDATE + VALIDATION (year >= 1900)
-# -------------------------------------------------------------
+#UPDATE+VALIDATION 
 @app.route("/books/<int:bid>", methods=["PUT"])
 def update_book(bid):
     book = find(bid)
@@ -93,8 +71,6 @@ def update_book(bid):
         return {"error": "not found"}, 404
         
     body = request.get_json(silent=True) or {}
-    
-    # If the user tries to update the year, validate it
     if "year" in body:
         try:
             y = int(body["year"])
@@ -103,17 +79,12 @@ def update_book(bid):
             body["year"] = y
         except ValueError:
             return {"error": "year must be a valid number"}, 400
-
-    # Update other fields (like title or author) if they are in the request
     for key in ["title", "author"]:
         if key in body:
             book[key] = body[key]
 
     return jsonify(book), 200
-
-# -------------------------------------------------------------
-# 5. DELETE
-# -------------------------------------------------------------
+#DELETE
 @app.route("/books/<int:bid>", methods=["DELETE"])
 def delete_book(bid):
     book = find(bid)
