@@ -1,60 +1,46 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request, make_response
 
 app = Flask(__name__)
 
-books = []
+BOOKS = []
+_next_id = 1
 
-@app.route("/books", methods=["GET"])
-def get_books():
+@app.get("/books")
+def list_books():
     return jsonify({
-        "data": books,
-        "total": len(books)
+        "data": BOOKS,
+        "total": len(BOOKS)
     }), 200
 
-@app.route("/books/<int:book_id>", methods=["GET"])
-def get_book(book_id):
-    for book in books:
-        if book["id"] == book_id:
-            return jsonify(book), 200
 
-    return jsonify({
-        "error": "Book not found"
-    }), 404
-
-@app.route("/books", methods=["POST"])
+@app.post("/books")
 def create_book():
+    global _next_id
 
     if not request.is_json:
-        return jsonify({
-            "error": "Content-Type must be json"
-        }), 415
+        return jsonify({"error": "expected JSON"}), 415
 
-    data = request.get_json(silent=True)
+    p = request.get_json(silent=True) or {}
 
-    if data is None:
-        return jsonify({
-            "error": "Invalid JSON"
-        }), 400
+    t = (p.get("title") or "").strip()
+    a = (p.get("author") or "").strip()
 
-
-    if "author" not in data:
-        return jsonify({
-            "error": "author is required"
-        }), 422
-
-    new_id = len(books) + 1
+    if not t or not a:
+        return jsonify({"error": "title and author required"}), 422
 
     book = {
-        "id": new_id,
-        "title": data["title"],
-        "author": data["author"],
-        "published_year": data["published_year"]
+        "id": _next_id,
+        "title": t,
+        "author": a
     }
 
-    books.append(book)
+    BOOKS.append(book)
+    _next_id += 1
 
-    return jsonify(book), 201
+    resp = make_response(jsonify(book), 201)
+    resp.headers["Location"] = f"/books/{book['id']}"
 
+    return resp
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(debug=True)
