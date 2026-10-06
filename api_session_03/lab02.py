@@ -49,6 +49,9 @@ RESOURCES = {
     2: {"id": 2, "name": "The ones who walk away from omelas"},
     3: {"id": 3, "name": "A little life"},
     4: {"id": 4, "name": "Demian"},
+    5: {"id": 5, "name": "Jane eyre"},
+    6: {"id": 6, "name": "The little prince"},
+    7: {"id": 7, "name": "The midnight library"},
 }
 
 @app.get("/resources/<int:resource_id>")
@@ -66,8 +69,7 @@ def get_resource(resource_id):
 
 @app.get("/boom")  
 def boom():
-    raise RuntimeError("password = 1234567") 
-
+    raise RuntimeError("password = 121212")     
 
 if __name__ == "__main__":
     app.run(debug=False)
