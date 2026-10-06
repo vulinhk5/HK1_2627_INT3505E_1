@@ -5,9 +5,6 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-# ---------------------------------------------------------------
-# Dữ liệu giả (thay cho database): 12 đơn hàng
-# ---------------------------------------------------------------
 ORDERS = [
     {"id": 1,  "customer_id": 1, "status": "paid",      "total": 50,  "created_at": "2026-01-01"},
     {"id": 2,  "customer_id": 2, "status": "pending",   "total": 30,  "created_at": "2026-01-02"},
@@ -30,10 +27,6 @@ SORTABLE = ["id", "total", "created_at"]
 def bad_request(message):
     return jsonify({"error": message}), 400
 
-
-# ---------------------------------------------------------------
-# Cursor = chuỗi base64 chứa "vị trí của item cuối cùng trang trước"
-# ---------------------------------------------------------------
 def encode_cursor(sort, value, last_id):
     raw = json.dumps({"sort": sort, "v": value, "id": last_id})
     return base64.urlsafe_b64encode(raw.encode()).decode()
@@ -43,10 +36,8 @@ def decode_cursor(cursor, sort, field):
     """Trả về (value, id). Nếu cursor hỏng thì trả về None."""
     try:
         data = json.loads(base64.urlsafe_b64decode(cursor.encode()))
-        # cursor phải được tạo ra với cùng cách sort
         if data["sort"] != sort:
             return None
-        # kiểu dữ liệu phải khớp (vd: total là số, created_at là chuỗi)
         if type(data["v"]) is not type(ORDERS[0][field]):
             return None
         if type(data["id"]) is not int:
@@ -55,23 +46,17 @@ def decode_cursor(cursor, sort, field):
     except Exception:
         return None
 
-
-# ---------------------------------------------------------------
-# GET /orders
-# ---------------------------------------------------------------
 @app.get("/orders")
 def list_orders():
     args = request.args
 
-    # --- limit: số item mỗi trang ---------------------------------
     try:
         limit = int(args.get("limit", 10))
     except ValueError:
         return bad_request("limit phải là số nguyên")
     if not 1 <= limit <= 100:
         return bad_request("limit phải từ 1 đến 100")
-
-    # --- (2) filter: status, customer_id ----------------------------
+    
     items = ORDERS
 
     if "status" in args:
@@ -84,17 +69,13 @@ def list_orders():
             return bad_request("customer_id phải là số nguyên")
         items = [o for o in items if o["customer_id"] == customer_id]
 
-    # --- (3) sort: ?sort=total (tăng) hoặc ?sort=-total (giảm) -------
     sort = args.get("sort", "id")
     desc = sort.startswith("-")
     field = sort.lstrip("-")
     if field not in SORTABLE:
         return bad_request(f"sort chỉ nhận: {', '.join(SORTABLE)} (thêm - để giảm dần)")
-
-    # sort theo (field, id): id làm "phá hòa" để thứ tự luôn cố định
     items = sorted(items, key=lambda o: (o[field], o["id"]), reverse=desc)
 
-    # --- (1) cursor: bỏ các item đã xem ở trang trước ---------------
     cursor = args.get("cursor")
     if cursor:
         last = decode_cursor(cursor, sort, field)
@@ -103,7 +84,7 @@ def list_orders():
         if desc:
             items = [o for o in items if (o[field], o["id"]) < last]
         else:
-            
+            items = [o for o in items if (o[field], o["id"]) > last]
 
     page = items[:limit]
     has_more = len(items) > limit
