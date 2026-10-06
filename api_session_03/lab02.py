@@ -45,8 +45,10 @@ def handle_unexpected_error(e):
     )
 
 RESOURCES = {
-    1: {"id": 1, "name": "Laptop"},
-    2: {"id": 2, "name": "Phone"},
+    1: {"id": 1, "name": "Into the magic shop"},
+    2: {"id": 2, "name": "The ones who walk away from omelas"},
+    3: {"id": 3, "name": "A little life"},
+    4: {"id": 4, "name": "Demian"},
 }
 
 @app.get("/resources/<int:resource_id>")
