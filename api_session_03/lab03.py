@@ -33,7 +33,6 @@ def encode_cursor(sort, value, last_id):
 
 
 def decode_cursor(cursor, sort, field):
-    """Trả về (value, id). Nếu cursor hỏng thì trả về None."""
     try:
         data = json.loads(base64.urlsafe_b64decode(cursor.encode()))
         if data["sort"] != sort:
@@ -53,10 +52,10 @@ def list_orders():
     try:
         limit = int(args.get("limit", 10))
     except ValueError:
-        return bad_request("limit phải là số nguyên")
+        return bad_request("limit must be an integer")
     if not 1 <= limit <= 100:
-        return bad_request("limit phải từ 1 đến 100")
-    
+        return bad_request("limit must be between 1 and 100")
+
     items = ORDERS
 
     if "status" in args:
@@ -66,21 +65,21 @@ def list_orders():
         try:
             customer_id = int(args["customer_id"])
         except ValueError:
-            return bad_request("customer_id phải là số nguyên")
+            return bad_request("customer_id must be an integer")
         items = [o for o in items if o["customer_id"] == customer_id]
 
     sort = args.get("sort", "id")
     desc = sort.startswith("-")
     field = sort.lstrip("-")
     if field not in SORTABLE:
-        return bad_request(f"sort chỉ nhận: {', '.join(SORTABLE)} (thêm - để giảm dần)")
+        return bad_request(f"sort only accepts: {', '.join(SORTABLE)} (prepend - for descending)")
     items = sorted(items, key=lambda o: (o[field], o["id"]), reverse=desc)
 
     cursor = args.get("cursor")
     if cursor:
         last = decode_cursor(cursor, sort, field)
         if last is None:
-            return bad_request("cursor không hợp lệ")
+            return bad_request("cursor is invalid")
         if desc:
             items = [o for o in items if (o[field], o["id"]) < last]
         else:
@@ -98,7 +97,7 @@ def list_orders():
         wanted = args["fields"].split(",")
         unknown = [f for f in wanted if f not in ALL_FIELDS]
         if unknown:
-            return bad_request(f"field không tồn tại: {', '.join(unknown)}")
+            return bad_request(f"field does not exist: {', '.join(unknown)}")
         page = [{f: o[f] for f in wanted} for o in page]
 
     return jsonify({"data": page, "next_cursor": next_cursor})
