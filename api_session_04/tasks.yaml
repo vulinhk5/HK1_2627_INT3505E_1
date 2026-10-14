@@ -1,0 +1,395 @@
+openapi: 3.0.3
+info:
+  title: Tasks API
+  description: >-
+    Quản lý task nội bộ. Mỗi task có title, status, priority, dueDate và assigneeId.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: tasks
+    description: Quản lý task nội bộ
+paths:
+  /tasks:
+    get:
+      tags:
+        - tasks
+      summary: Lấy danh sách task
+      description: Trả về toàn bộ danh sách task
+      operationId: listTasks
+      parameters:
+        - $ref: '#/components/parameters/StatusFilter'
+      responses:
+        '200':
+          description: Danh sách task
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+              example:
+                - id: 9b2d4f1e-6a3c-4e8b-a1d7-5c0f8e2b7a34
+                  title: Review code module Auth
+                  status: todo
+                  priority: medium
+                  dueDate: '2026-09-20'
+                  assigneeId: null
+                  createdAt: '2026-09-01T08:30:00Z'
+                  updatedAt: '2026-09-01T08:30:00Z'
+                - id: c41a7e52-0d9b-4f36-8a2e-b7d3519f6c08
+                  title: Viết báo cáo tuần
+                  status: todo
+                  priority: low
+                  dueDate: null
+                  assigneeId: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+                  createdAt: '2026-09-02T09:00:00Z'
+                  updatedAt: '2026-09-02T09:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      x-codeSamples:
+        - lang: Shell
+          label: Ví dụ 
+          source: |
+            curl -X GET 'http://localhost:5000/v1/tasks?status=todo' \
+              -H 'Authorization: Bearer <JWT>'
+    post:
+      tags:
+        - tasks
+      summary: Tạo task mới
+      description: Tạo một task mới
+      operationId: createTask
+      requestBody:
+        description: Thông tin task cần tạo
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskInput'
+            example:
+              title: Review code module Auth
+              priority: medium
+              dueDate: '2026-09-20'
+      responses:
+        '201':
+          description: Tạo task thành công
+          headers:
+            Location:
+              description: URL của task vừa tạo
+              schema:
+                type: string
+                example: /v1/tasks/9b2d4f1e-6a3c-4e8b-a1d7-5c0f8e2b7a34
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 9b2d4f1e-6a3c-4e8b-a1d7-5c0f8e2b7a34
+                title: Review code module Auth
+                status: todo
+                priority: medium
+                dueDate: '2026-09-20'
+                assigneeId: null
+                createdAt: '2026-09-01T08:30:00Z'
+                updatedAt: '2026-09-01T08:30:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      x-codeSamples:
+        - lang: Shell
+          label: Ví dụ cURL
+          source: |
+            curl -X POST 'http://localhost:5000/v1/tasks' \
+              -H 'Authorization: Bearer <JWT>' \
+              -H 'Content-Type: application/json' \
+              -d '{"title": "Review code module Auth", "priority": "medium", "dueDate": "2026-09-20"}'
+  /tasks/{taskId}:
+    parameters:
+      - $ref: '#/components/parameters/TaskId'
+    get:
+      tags:
+        - tasks
+      summary: Lấy chi tiết một task
+      description: Trả về một task theo id
+      operationId: getTaskById
+      responses:
+        '200':
+          description: Chi tiết task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                title: Viết OpenAPI cho Tasks API
+                status: in_progress
+                priority: high
+                dueDate: '2026-09-15'
+                assigneeId: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+                createdAt: '2026-09-01T08:30:00Z'
+                updatedAt: '2026-09-02T10:15:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-codeSamples:
+        - lang: Shell
+          label: Ví dụ cURL
+          source: |
+            curl -X GET 'http://localhost:5000/v1/tasks/3fa85f64-5717-4562-b3fc-2c963f66afa6' \
+              -H 'Authorization: Bearer <JWT>'
+    patch:
+      tags:
+        - tasks
+      summary: Cập nhật một phần task
+      description: Chỉ cập nhật các field được gửi lên, các field còn lại giữ nguyên
+      operationId: patchTask
+      requestBody:
+        description: Các field cần cập nhật (gửi ít nhất một field)
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskInput'
+            example:
+              status: done
+      responses:
+        '200':
+          description: Cập nhật thành công, trả về task sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+              example:
+                id: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+                title: Viết OpenAPI cho Tasks API
+                status: done
+                priority: high
+                dueDate: '2026-09-15'
+                assigneeId: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+                createdAt: '2026-09-01T08:30:00Z'
+                updatedAt: '2026-09-03T14:00:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      x-codeSamples:
+        - lang: Shell
+          label: Ví dụ cURL
+          source: |
+            curl -X PATCH 'http://localhost:5000/v1/tasks/3fa85f64-5717-4562-b3fc-2c963f66afa6' \
+              -H 'Authorization: Bearer <JWT>' \
+              -H 'Content-Type: application/json' \
+              -d '{"status": "done"}'
+    delete:
+      tags:
+        - tasks
+      summary: Xóa task
+      description: Xóa một task theo id
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Xóa thành công (không có body)
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      x-codeSamples:
+        - lang: Shell
+          label: Ví dụ cURL
+          source: |
+            curl -X DELETE 'http://localhost:5000/v1/tasks/9b2d4f1e-6a3c-4e8b-a1d7-5c0f8e2b7a34' \
+              -H 'Authorization: Bearer <JWT>'
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - priority
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Viết OpenAPI cho Tasks API
+        status:
+          type: string
+          enum:
+            - todo
+            - in_progress
+            - done
+          default: todo
+          example: in_progress
+        priority:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+          default: medium
+          example: high
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-09-15'
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Id của người được giao task
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+          example: '2026-09-01T08:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+          example: '2026-09-02T10:15:00Z'
+    CreateTaskInput:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: Viết OpenAPI cho Tasks API
+        status:
+          type: string
+          enum:
+            - todo
+            - in_progress
+            - done
+          default: todo
+        priority:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+          default: medium
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-09-15'
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+          example: 7c9e6679-7425-40de-944b-e07fc1f90ae7
+    UpdateTaskInput:
+      type: object
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        status:
+          type: string
+          enum:
+            - todo
+            - in_progress
+            - done
+        priority:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        assigneeId:
+          type: string
+          format: uuid
+          nullable: true
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Request body is invalid
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: title
+              issue:
+                type: string
+                example: must not be empty
+  parameters:
+    TaskId:
+      name: taskId
+      in: path
+      description: Id của task
+      required: true
+      schema:
+        type: string
+        format: uuid
+    StatusFilter:
+      name: status
+      in: query
+      description: Lấy các task có status dưới đây
+      required: false
+      schema:
+        type: string
+        enum:
+          - todo
+          - in_progress
+          - done
+  responses:
+    Unauthorized:
+      description: Thiếu hoặc sai Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Không tìm thấy task
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Dữ liệu gửi lên không hợp lệ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
