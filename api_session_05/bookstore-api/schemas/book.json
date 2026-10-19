@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-12/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Book",
   "type": "object",
   "properties": {
@@ -24,4 +24,3 @@
   },
   "required": ["title"]
 }
-
