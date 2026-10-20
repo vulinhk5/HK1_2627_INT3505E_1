@@ -1,51 +1,59 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import mapped_column, relationship
 
 db = SQLAlchemy()
 
-book_author = db.Table('book_author',
-    db.Column('book_id', db.Integer, db.ForeignKey('book.id'), primary_key=True),
-    db.Column('author_id', db.Integer, db.ForeignKey('author.id'), primary_key=True)
+book_author = db.Table(
+    "book_author",
+    db.Column("book_id", db.ForeignKey("book.id"), primary_key=True),
+    db.Column("author_id", db.ForeignKey("author.id"), primary_key=True),
 )
+
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(100), unique=True, nullable=False)
-    
-    books = db.relationship('Book', backref='category', lazy=True)
+    slug = db.Column(db.String(100), nullable=False, unique=True)
+
 
 class Author(db.Model):
-    id = db.Column(db.Integer, primary_key=True) 
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     bio = db.Column(db.Text)
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    display_name = db.Column(db.String(100))
+    email = db.Column(db.String(120), nullable=False, unique=True)
+    display_name = db.Column(db.String(100), nullable=False)
 
-    reviews = db.relationship('Review', backref='user', lazy=True)
 
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    isbn = db.Column(db.String(20), unique=True)
-    price_vnd = db.Column(db.Integer)
-    stock = db.Column(db.Integer)
+    isbn = db.Column(db.String(13), nullable=False, unique=True)
+    price_vnd = db.Column(db.Integer, nullable=False)
+    stock = db.Column(db.Integer, nullable=False, default=0)
+    category_id = db.Column(db.ForeignKey("category.id"), nullable=False)
 
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
-
-    authors = db.relationship('Author', secondary=book_author, backref=db.backref('books', lazy=True))
+    category = db.relationship("Category", backref="books")                      
+    authors = db.relationship("Author", secondary=book_author, backref="books")  
 
     def to_dict(self):
-        return {"id": f"book_{self.id}", "title": self.title}
+        return {
+            "id": self.id,
+            "title": self.title,
+            "isbn": self.isbn,
+            "price_vnd": self.price_vnd,
+            "stock": self.stock,
+            "category_id": self.category_id,
+        }
+
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rating = db.Column(db.Integer, nullable=False)
+    book_id = db.Column(db.ForeignKey("book.id"), nullable=False)
+    user_id = db.Column(db.ForeignKey("user.id"), nullable=False)
 
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    book = db.relationship('Book', backref=db.backref('reviews', lazy=True))
+    book = db.relationship("Book", backref=db.backref("reviews", cascade="all, delete-orphan"))
+    user = db.relationship("User", backref="reviews")
