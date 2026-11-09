@@ -1,0 +1,168 @@
+components:
+  responses:
+    DEFAULT_ERROR:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Default error response
+    UNPROCESSABLE_CONTENT:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Unprocessable Content
+  schemas:
+    Error:
+      additionalProperties: false
+      properties:
+        code:
+          description: Error code
+          type: integer
+        errors:
+          additionalProperties: {}
+          description: Errors
+          type: object
+        message:
+          description: Error message
+          type: string
+        status:
+          description: Error name
+          type: string
+      type: object
+    PaginationMetadata:
+      additionalProperties: false
+      properties:
+        first_page:
+          description: First available page number.
+          type: integer
+        last_page:
+          description: Last available page number.
+          type: integer
+        next_page:
+          description: Next page number.
+          type: integer
+        page:
+          description: Current page number.
+          type: integer
+        previous_page:
+          description: Previous page number.
+          type: integer
+        total:
+          description: Total number of items.
+          type: integer
+        total_pages:
+          description: Total number of pages.
+          type: integer
+      type: object
+    Product:
+      additionalProperties: false
+      properties:
+        description:
+          default: null
+          nullable: true
+          type: string
+        id:
+          readOnly: true
+          type: integer
+        name:
+          maxLength: 120
+          minLength: 1
+          type: string
+        price:
+          minimum: 0.0
+          type: number
+      required:
+      - name
+      - price
+      type: object
+    ProductIn:
+      additionalProperties: false
+      properties:
+        description:
+          default: null
+          nullable: true
+          type: string
+        name:
+          maxLength: 120
+          minLength: 1
+          type: string
+        price:
+          minimum: 0.0
+          type: number
+      required:
+      - name
+      - price
+      type: object
+info:
+  description: "Code-First: spec \u0111\u01B0\u1EE3c sinh t\u1EF1 \u0111\u1ED9ng t\u1EEB\
+    \ resource."
+  title: Product API
+  version: 1.0.0
+openapi: 3.0.3
+paths:
+  /products:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Product'
+                type: array
+          description: OK
+        default:
+          $ref: '#/components/responses/DEFAULT_ERROR'
+      summary: "Li\u1EC7t k\xEA to\xE0n b\u1ED9 s\u1EA3n ph\u1EA9m"
+      tags:
+      - products
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductIn'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Created
+        '422':
+          $ref: '#/components/responses/UNPROCESSABLE_CONTENT'
+        default:
+          $ref: '#/components/responses/DEFAULT_ERROR'
+      summary: "T\u1EA1o s\u1EA3n ph\u1EA9m m\u1EDBi"
+      tags:
+      - products
+  /products/{product_id}:
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: OK
+        '404':
+          description: Not Found
+        default:
+          $ref: '#/components/responses/DEFAULT_ERROR'
+      summary: "L\u1EA5y m\u1ED9t s\u1EA3n ph\u1EA9m theo id"
+      tags:
+      - products
+    parameters:
+    - in: path
+      name: product_id
+      required: true
+      schema:
+        minimum: 0
+        type: integer
+servers:
+- url: /
+tags:
+- description: "Qu\u1EA3n l\xFD s\u1EA3n ph\u1EA9m"
+  name: products
