@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info: { title: Product API, version: 1.0.0 }
+
+paths:
+  /products:
+    get:
+      operationId: products.list_products
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+    post:
+      operationId: products.create_product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductIn' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400': { description: Validation }
+
+  /products/{id}:
+    get:
+      operationId: products.get_product
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404': { description: Not Found }
+
+components:
+  schemas:
+    ProductIn:
+      type: object
+      required: [name, price]
+      additionalProperties: false
+      properties:
+        name:  { type: string, minLength: 1 }
+        price: { type: number, minimum: 0 }
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/ProductIn'
+        - type: object
+          properties:
+            id: { type: integer }
