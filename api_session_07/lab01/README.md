@@ -72,7 +72,7 @@ Copy-Item .env.example .env
 docker compose up --build
 ```
 ## 4. Chạy kiểm thử
-Cài dependencies phát triển:
+Cài đặt các dependencies dành cho môi trường phát triển:
+```bash
 pip install -e ".[dev]"
-Chạy toàn bộ test suite:
 pytest -v
