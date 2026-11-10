@@ -64,57 +64,15 @@ lab01/
 Tạo file `.env` từ file mẫu `.env.example`:
 
 **Windows PowerShell**
-
 ```powershell
 Copy-Item .env.example .env
 ```
-
-**macOS / Linux**
-
-```bash
-cp .env.example .env
-```
-
 ### Chạy ứng dụng bằng Docker Compose
-
-Sau khi xử lý các điểm tích hợp nêu ở mục 10:
-
 ```bash
 docker compose up --build
 ```
-
-Docker Compose sẽ:
-
-1. Khởi chạy PostgreSQL 16.
-2. Chờ database vượt qua health check.
-3. Build image và khởi chạy Flask API bằng Gunicorn.
-4. Chạy database migrations khi Gunicorn khởi động (mặc định bật).
-5. Expose API tại `http://localhost:5000` (hoặc cổng được cấu hình trong `API_PORT`).
-
-Dừng ứng dụng:
-
-```bash
-docker compose down
-```
-
-Dừng ứng dụng và xóa cả dữ liệu PostgreSQL đã lưu trong volume:
-
-```bash
-docker compose down -v
-```
 ## 4. Chạy kiểm thử
 Cài dependencies phát triển:
-
 pip install -e ".[dev]"
-
 Chạy toàn bộ test suite:
-
 pytest -v
-
-Chạy riêng từng nhóm:
-
-pytest tests/test_products.py -v
-pytest tests/test_orders.py -v
-pytest tests/test_health.py -v
-pytest tests/test_migrations.py -v
-pytest tests/test_openapi.py -v
