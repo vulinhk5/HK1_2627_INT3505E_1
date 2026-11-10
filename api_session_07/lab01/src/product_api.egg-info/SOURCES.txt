@@ -1,4 +1,5 @@
 pyproject.toml
+src/product_api/__init__.py
 src/product_api/config.py
 src/product_api/extensions.py
 src/product_api/factory.py
@@ -10,14 +11,16 @@ src/product_api.egg-info/SOURCES.txt
 src/product_api.egg-info/dependency_links.txt
 src/product_api.egg-info/requires.txt
 src/product_api.egg-info/top_level.txt
-src/product_api/api/_init_.py
+src/product_api/api/__init__.py
 src/product_api/api/errors.py
 src/product_api/api/health.py
 src/product_api/api/products.py
 src/product_api/api/utils.py
+src/product_api/api/schemas/__init__.py
 src/product_api/api/schemas/common.py
 src/product_api/api/schemas/orders.py
 src/product_api/api/schemas/products.py
+src/product_api/models/__init__.py
 src/product_api/models/order.py
 src/product_api/models/product.py
 tests/test_health.py
