@@ -1,0 +1,294 @@
+openapi: 3.0.3
+info:
+  title: Order API
+  version: 1.0.0
+  description: |
+    Resource `orders` và `OrderItem`.
+    Một đơn có nhiều dòng; mỗi dòng giữ `unit_price_cents` chốt tại thời điểm đặt.
+    Tạo/sửa đơn không tự trừ kho - trừ kho dùng `POST /api/v1/products/{id}/reserve`.
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: orders
+
+paths:
+  /api/v1/orders:
+    get:
+      tags: [orders]
+      operationId: listOrders
+      summary: Danh sách đơn hàng 
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+      responses:
+        "200":
+          description: Trang đơn hàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderList"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+    post:
+      tags: [orders]
+      operationId: createOrder
+      summary: Tạo đơn kèm các dòng hàng
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreate"
+      responses:
+        "201":
+          description: Đã tạo
+          headers:
+            Location:
+              description: URL của đơn vừa tạo
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          description: Sai dữ liệu (`validation_error`) hoặc product_id không tồn tại/đã archive (`unknown_product`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/orders/{order_id}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    get:
+      tags: [orders]
+      operationId: getOrder
+      summary: Xem một đơn
+      responses:
+        "200":
+          description: Đơn hàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/orders/{order_id}/items:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    post:
+      tags: [orders]
+      operationId: addOrderItem
+      summary: Thêm một dòng hàng vào đơn 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderItemCreate"
+      responses:
+        "201":
+          description: Đơn sau khi thêm dòng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Sản phẩm đã có trong đơn (`duplicate_item`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Sai dữ liệu (`validation_error`) hoặc `unknown_product`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/orders/{order_id}/items/{item_id}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - name: item_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    delete:
+      tags: [orders]
+      operationId: removeOrderItem
+      summary: Bỏ một dòng hàng khỏi đơn
+      responses:
+        "204":
+          description: Đã bỏ
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Đơn phải còn ít nhất 1 dòng 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    OrderId:
+      name: order_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    Page:
+      name: page
+      in: query
+      description: Trang bắt đầu từ 1. Giá trị < 1 được kẹp về 1; không phải số nguyên thì trả về 422.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Size:
+      name: size
+      in: query
+      description: Số phần tử mỗi trang. Giá trị ngoài khoảng 1..100 được kẹp lại.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    ProductBrief:
+      type: object
+      required: [id, sku, name]
+      properties:
+        id:
+          type: integer
+        sku:
+          type: string
+        name:
+          type: string
+    OrderItem:
+      type: object
+      required: [id, product_id, qty, unit_price_cents, line_total_cents, product]
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        qty:
+          type: integer
+          minimum: 1
+        unit_price_cents:
+          type: integer
+          minimum: 0
+          description: Giá tại thời điểm đặt hàng
+        line_total_cents:
+          type: integer
+          description: qty * unit_price_cents
+        product:
+          $ref: "#/components/schemas/ProductBrief"
+    Order:
+      type: object
+      required: [id, customer_name, created_at, items, total_cents]
+      properties:
+        id:
+          type: integer
+        customer_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        total_cents:
+          type: integer
+          description: Tổng line_total_cents của mọi dòng
+    OrderItemCreate:
+      type: object
+      additionalProperties: false
+      required: [product_id, qty]
+      properties:
+        product_id:
+          type: integer
+          minimum: 1
+        qty:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    OrderCreate:
+      type: object
+      additionalProperties: false
+      required: [customer_name, items]
+      properties:
+        customer_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        items:
+          type: array
+          minItems: 1
+          maxItems: 100
+          description: Mỗi product_id chỉ xuất hiện một lần
+          items:
+            $ref: "#/components/schemas/OrderItemCreate"
+    OrderList:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+    Error:
+      type: object
+      required: [error, detail, code, message]
+      properties:
+        error:
+          type: string
+        detail:
+          type: string
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Body không phải JSON object hợp lệ (`bad_request`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Không tìm thấy (`not_found`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unprocessable:
+      description: Dữ liệu sai quy tắc (`validation_error`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

@@ -1,0 +1,35 @@
+name: product-api
+
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpw}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    image: product-api:latest
+    environment:
+      DB_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-devpw}@db:5432/${POSTGRES_DB:-appdb}
+      SECRET_KEY: ${SECRET_KEY:-dev-not-for-prod}
+      APP_CONFIG: ${APP_CONFIG:-product_api.config.DefaultConfig}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      db:
+        condition: service_healthy 
+    ports:
+      - "${API_PORT:-5000}:5000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,133 @@
+from flask import Blueprint, jsonify, url_for
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
+
+from .errors import Conflict, NotFound, Unprocessable
+from ..extensions import db
+from ..models import Order, OrderItem, Product
+from .schemas.orders import ORDER_OUT, ORDER_OUT_MANY, OrderIn, OrderItemIn
+from .utils import json_body, parse_pagination
+
+orders_bp = Blueprint("orders", __name__, url_prefix="/api/v1/orders")
+
+
+def _with_items(stmt):
+    return stmt.options(selectinload(Order.items).joinedload(OrderItem.product))
+
+
+def _load_order(order_id: int) -> Order:
+    order = db.session.execute(
+        _with_items(select(Order).where(Order.id == order_id)).execution_options(
+            populate_existing=True  
+        )
+    ).scalar_one_or_none()
+    if order is None:
+        raise NotFound(message=f"order {order_id} not found")
+    return order
+
+
+def _order_response(order: Order, status: int = 200):
+    response = jsonify(ORDER_OUT.dump(order))
+    response.status_code = status
+    if status == 201:
+        response.headers["Location"] = url_for("orders.get_order", order_id=order.id)
+    return response
+
+
+def _unknown_product(product_ids) -> Unprocessable:
+    ids = ", ".join(str(i) for i in sorted(product_ids))
+    return Unprocessable(
+        code="unknown_product", message=f"unknown or archived product_id: {ids}"
+    )
+
+
+@orders_bp.get("")
+def list_orders():
+    page, size = parse_pagination()
+    orders = (
+        db.session.execute(
+            _with_items(select(Order))
+            .order_by(Order.id)
+            .offset((page - 1) * size)
+            .limit(size)
+        )
+        .scalars()
+        .all()
+    )
+    total = db.session.scalar(select(func.count()).select_from(Order))
+    return jsonify(
+        {"items": ORDER_OUT_MANY.dump(orders), "page": page, "size": size, "total": total}
+    )
+
+
+
+@orders_bp.get("/<int:order_id>")
+def get_order(order_id):
+    return _order_response(_load_order(order_id))
+
+@orders_bp.post("")
+def create_order():
+    data = OrderIn().load(json_body())
+    requested = {item["product_id"] for item in data["items"]}
+
+    products = {
+        p.id: p
+        for p in db.session.execute(
+            select(Product).where(Product.id.in_(requested), Product.archived.is_(False))
+        ).scalars()
+    }
+    if missing := requested - products.keys():
+        raise _unknown_product(missing)
+
+    order = Order(customer_name=data["customer_name"])
+    for item in data["items"]:
+        product = products[item["product_id"]]
+        order.items.append(
+            OrderItem(product=product, qty=item["qty"], unit_price_cents=product.price_cents)
+        )
+    db.session.add(order)
+    db.session.flush()  
+    order_id = order.id
+    db.session.commit()
+    return _order_response(_load_order(order_id), 201)
+
+@orders_bp.post("/<int:order_id>/items")
+def add_item(order_id):
+    order = _load_order(order_id)
+    data = OrderItemIn().load(json_body())
+
+    product = db.session.get(Product, data["product_id"])
+    if product is None or product.archived:
+        raise _unknown_product({data["product_id"]})
+    if any(item.product_id == product.id for item in order.items):
+        raise Conflict(
+            code="duplicate_item", message=f"product {product.id} is already in this order"
+        )
+
+    order.items.append(
+        OrderItem(product=product, qty=data["qty"], unit_price_cents=product.price_cents)
+    )
+    try:
+        db.session.commit()
+    except IntegrityError: 
+        db.session.rollback()
+        raise Conflict(
+            code="duplicate_item", message=f"product {product.id} is already in this order"
+        ) from None
+    return _order_response(_load_order(order_id), 201)
+
+
+@orders_bp.delete("/<int:order_id>/items/<int:item_id>")
+def remove_item(order_id, item_id):
+    order = _load_order(order_id)
+    item = next((i for i in order.items if i.id == item_id), None)
+    if item is None:
+        raise NotFound(message=f"item {item_id} not found in order {order_id}")
+    if len(order.items) == 1:
+        raise Conflict(
+            code="order_requires_item", message="an order must keep at least one item"
+        )
+    order.items.remove(item)  
+    db.session.commit()
+    return "", 204

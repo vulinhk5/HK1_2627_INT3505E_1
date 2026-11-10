@@ -1,0 +1,328 @@
+openapi: 3.0.3
+info:
+  title: Product API
+  version: 1.0.0
+  description: |
+    Lab 1. Hợp đồng của resource `products`.
+    Mọi lỗi trả JSON theo schema `Error`; xóa là soft-delete,
+    sản phẩm đã archive bị coi như không tồn tại (404).
+servers:
+  - url: http://localhost:5000
+tags:
+  - name: products
+
+paths:
+  /api/v1/products:
+    get:
+      tags: [products]
+      operationId: listProducts
+      summary: Danh sách sản phẩm 
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Size"
+      responses:
+        "200":
+          description: Trang sản phẩm (không gồm sản phẩm đã archive)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductList"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+    post:
+      tags: [products]
+      operationId: createProduct
+      summary: Tạo sản phẩm
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+      responses:
+        "201":
+          description: Đã tạo sản phẩm
+          headers:
+            Location:
+              description: URL của sản phẩm vừa tạo
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+  /api/v1/products/{product_id}:
+    parameters:
+      - $ref: "#/components/parameters/ProductId"
+    get:
+      tags: [products]
+      operationId: getProduct
+      summary: Lấy một sản phẩm
+      responses:
+        "200":
+          description: Sản phẩm
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [products]
+      operationId: updateProduct
+      summary: Cập nhật một phần thông tin của sản phẩm
+      description: "`sku` là định danh bất biến nên không được phép gửi lên (422)."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Sản phẩm sau khi cập nhật
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+    delete:
+      tags: [products]
+      operationId: deleteProduct
+      summary: Soft-delete (archive) sản phẩm
+      responses:
+        "204":
+          description: Đã archive
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/products/{product_id}/reserve:
+    parameters:
+      - $ref: "#/components/parameters/ProductId"
+    post:
+      tags: [products]
+      operationId: reserveProduct
+      summary: Đặt trước 
+      description: |
+        Trừ `qty` khỏi `qty_in_stock`. Việc kiểm tra và trừ kho là một câu update atomic,
+        nên kho không bao giờ xuống dưới 0 kể cả khi nhiều request đồng thời.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
+      responses:
+        "200":
+          description: Sản phẩm với số lượng tồn kho mới
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Không đủ hàng
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: out_of_stock
+                detail: only 3 left
+                code: out_of_stock
+                message: only 3 left
+        "422":
+          $ref: "#/components/responses/Unprocessable"
+
+components:
+  parameters:
+    ProductId:
+      name: product_id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    Page:
+      name: page
+      in: query
+      description: Trang bắt đầu từ 1. Giá trị < 1 được kẹp về 1; không phải số nguyên thì trả về 422.
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Size:
+      name: size
+      in: query
+      description: Số phần tử mỗi trang. Giá trị ngoài khoảng 1..100 được kẹp lại.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    Product:
+      type: object
+      required: [id, sku, name, price_cents, qty_in_stock, archived, created_at]
+      properties:
+        id:
+          type: integer
+          example: 1
+        sku:
+          type: string
+          minLength: 3
+          maxLength: 32
+          example: PEN-001
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Bút bi xanh
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        price_cents:
+          type: integer
+          minimum: 0
+          example: 5000
+        qty_in_stock:
+          type: integer
+          minimum: 0
+          example: 10
+        archived:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    ProductCreate:
+      type: object
+      additionalProperties: false
+      required: [sku, name, price_cents]
+      properties:
+        sku:
+          type: string
+          minLength: 3
+          maxLength: 32
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        price_cents:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        qty_in_stock:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+          default: 0
+    ProductUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        price_cents:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        qty_in_stock:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+    ReserveRequest:
+      type: object
+      additionalProperties: false
+      required: [qty]
+      properties:
+        qty:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    ProductList:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        page:
+          type: integer
+        size:
+          type: integer
+        total:
+          type: integer
+          description: Tổng số sản phẩm chưa archive
+    Error:
+      type: object
+      required: [error, detail, code, message]
+      properties:
+        error:
+          type: string
+          description: Mã lỗi máy đọc được 
+          example: validation_error
+        detail:
+          type: string
+          description: Mô tả lỗi cho người đọc 
+        code:
+          type: string
+        message:
+          type: string
+        errors:
+          type: object
+          description: Chi tiết theo từng field 
+          additionalProperties: true
+
+  responses:
+    BadRequest:
+      description: Body không phải JSON object hợp lệ (`bad_request`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Không tìm thấy hoặc đã archive (`not_found`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Trùng sku (`conflict`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unprocessable:
+      description: Dữ liệu sai quy tắc (`validation_error`)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
