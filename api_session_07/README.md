@@ -1,10 +1,8 @@
 # Product API – Lab 01
-
 REST API quản lý sản phẩm, tồn kho và đơn hàng, được xây dựng bằng **Flask**, **SQLAlchemy 2.x** và **PostgreSQL**. Dự án có định nghĩa API theo chuẩn OpenAPI 3.0, quản lý thay đổi cơ sở dữ liệu bằng Flask-Migrate/Alembic và kiểm thử bằng pytest.
 
 ## 1. Chức năng
 ### Products
-
 - Tạo, xem danh sách và xem chi tiết sản phẩm.
 - Cập nhật một phần thông tin sản phẩm.
 - Archive sản phẩm (soft delete); sản phẩm đã archive không còn xuất hiện trong danh sách và được xem như không tồn tại khi truy vấn.
@@ -43,8 +41,7 @@ lab01/
 │       ├── extensions.py       # db và migrate extensions
 │       ├── factory.py          # Flask application factory
 │       └── logging_config.py   # JSON request logging
-├── docs/
-│   └── images/                 # Ảnh kết quả chạy dùng trong README
+├── images/                     # Ảnh kết quả chạy dùng trong README
 ├── tests/                      # pytest test suite
 ├── .env.example                # Mẫu biến môi trường
 ├── Dockerfile
@@ -54,7 +51,6 @@ lab01/
 ```
 
 ## 3. Cài đặt và cấu hình
-
 ### Yêu cầu
 
 - Python 3.11 trở lên.
@@ -69,15 +65,29 @@ Tạo file `.env` từ file mẫu `.env.example`:
 ```powershell
 Copy-Item .env.example .env
 ```
+
 ### Chạy ứng dụng bằng Docker Compose
+
 ```bash
 docker compose up --build
+```
+
+### Chạy ứng dụng trực tiếp bằng Flask (môi trường phát triển)
+```powershell
+flask --app wsgi:app run --debug
+```
+Server chạy tại `http://127.0.0.1:5000`:
+
+![Kết quả chạy Flask server](images/run-flask.png)
+
 ## 4. Chạy kiểm thử
 Cài dependencies phát triển:
 
+```bash
 pip install -e ".[dev]"
 pytest -v
 ```
 
 Kết quả chạy `pytest -v`:
 
+![Kết quả chạy pytest](images/pytest-result.png)
