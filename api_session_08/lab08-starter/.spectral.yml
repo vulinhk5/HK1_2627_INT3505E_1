@@ -1,0 +1,64 @@
+extends: ["spectral:oas"]
+ 
+rules:
+  # Tắt 3 rule về văn phong của spectral:oas (mô tả, tags, contact). Chúng không
+  # thuộc 3 lỗi cố ý của Lab 2, nên tắt để "0 problem" chỉ phản ánh lỗi hợp đồng.
+  info-contact: off
+  operation-description: off
+  operation-tags: off
+ 
+  # Lỗi 1 (GET /books thiếu operationId) do rule operation-operationId có sẵn
+  # trong spectral:oas bắt, không cần viết thêm.
+ 
+  # Lỗi 2: response HTTP 204 không có body nên không được khai báo content.
+  no-body-on-204:
+    description: Response HTTP 204 không được khai báo content.
+    severity: error
+    given: "$.paths[*][*].responses['204']"
+    then:
+      field: content
+      function: falsy
+ 
+  # Lỗi 3: Book.year phải cùng kiểu với model Python (integer hoặc null).
+  book-year-must-be-integer:
+    description: Book.year phải khai báo type integer, khớp với model Python.
+    severity: error
+    given: "$.components.schemas.Book.properties.year"
+    then:
+      field: type
+      function: enumeration
+      functionOptions:
+        values: [integer]
+ 
+  # Custom rule: response 200 phải có nhiều hơn 0 trường trong schema.
+  # Bắt các trường hợp: thiếu schema, schema rỗng {}, schema chỉ có "type: object"
+  # mà không khai báo properties, hoặc mảng có items không có trường nào.
+  # Schema trả về rỗng thì client không biết response có gì và test hợp đồng
+  # không có gì để đối chiếu với code Flask.
+  response-200-schema-has-fields:
+    description: Response 200 phải có schema với ít nhất 1 trường.
+    message: Response 200 phải có schema với ít nhất 1 trường (properties, hoặc items.properties nếu là mảng).
+    severity: error
+    given: "$.paths[*][*].responses['200'].content[*]"
+    then:
+      - field: schema
+        function: truthy
+      - field: schema
+        function: schema
+        functionOptions:
+          schema:
+            type: object
+            anyOf:
+              # Object: properties có ít nhất 1 trường
+              - required: [properties]
+                properties:
+                  properties: {type: object, minProperties: 1}
+              # Mảng: mỗi phần tử (items) phải là object có ít nhất 1 trường
+              - required: [items]
+                properties:
+                  items:
+                    type: object
+                    required: [properties]
+                    properties:
+                      properties: {type: object, minProperties: 1}
+ 
