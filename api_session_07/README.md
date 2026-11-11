@@ -78,7 +78,7 @@ flask --app wsgi:app run --debug
 ```
 Server chạy tại `http://127.0.0.1:5000`:
 
-![Kết quả chạy Flask server](images/run-flask.png)
+![Kết quả chạy Flask server](lab01/images/run-flask.png)
 
 ## 4. Chạy kiểm thử
 Cài dependencies phát triển:
@@ -90,4 +90,4 @@ pytest -v
 
 Kết quả chạy `pytest -v`:
 
-![Kết quả chạy pytest](images/pytest-result.png)
+![Kết quả chạy pytest](lab01/images/pytest-result.png)
