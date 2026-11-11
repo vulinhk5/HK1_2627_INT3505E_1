@@ -72,25 +72,12 @@ Copy-Item .env.example .env
 ### Chạy ứng dụng bằng Docker Compose
 ```bash
 docker compose up --build
-```
-
-### Chạy ứng dụng trực tiếp bằng Flask (môi trường phát triển)
-
-```powershell
-flask --app wsgi:app run --debug
-```
-
-Server chạy tại `http://127.0.0.1:5000`:
-
-![Kết quả chạy Flask server](docs/images/run-flask.png)
-
 ## 4. Chạy kiểm thử
-Cài đặt các dependencies dành cho môi trường phát triển:
-```bash
+Cài dependencies phát triển:
+
 pip install -e ".[dev]"
 pytest -v
 ```
 
 Kết quả chạy `pytest -v`:
 
-![Kết quả chạy pytest](docs/images/pytest-result.png)
