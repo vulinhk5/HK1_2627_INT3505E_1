@@ -47,14 +47,14 @@ Script tự cài thư viện còn thiếu, bật Flask nền, chờ API sẵn s�
 ## Kết quả chạy 
 ### Flask API đang chạy
 
-![Flask API đang chạy trên cổng 5000](lab03/res/01-flask-running.png)
+![Flask API đang chạy trên cổng 5000](res/01-flask-running.png)
 
 ### Newman: 5 happy-path
 
-![Newman chạy 5 happy-path request](lab03/res/02-newman-happy-path.png)
+![Newman chạy 5 happy-path request](res/02-newman-happy-path.png)
 
 ### `error-cases` và bảng tổng kết
 
-![Newman chạy error-cases và bảng tổng kết](lab03/res/03-newman-error-cases-summary.png)
+![Newman chạy error-cases và bảng tổng kết](res/03-newman-error-cases-summary.png)
 
 
