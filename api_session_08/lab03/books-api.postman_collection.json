@@ -1,0 +1,272 @@
+{
+  "info": {
+    "_postman_id": "a3c1d2e4-7b6f-4c8a-9d10-books-api-lab3",
+    "name": "Books API",
+    "description": "Lab 3 - Newman-runnable collection: 5 happy paths + folder error-cases (2 request). Moi request co >= 2 pm.test.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:5000" },
+    { "key": "seed_book_id", "value": "1" },
+    { "key": "book_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "GET /books",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('GET /books -> status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('GET /books -> body la mang, co it nhat 1 sach', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.be.an('array');",
+              "    pm.expect(json.length).to.be.at.least(1);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/books",
+          "host": ["{{baseUrl}}"],
+          "path": ["books"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET /books/{id}",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('GET /books/{id} -> status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('GET /books/{id} -> body dung id va co title', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.id).to.eql(Number(pm.collectionVariables.get('seed_book_id')));",
+              "    pm.expect(json).to.have.property('title').that.is.a('string').and.is.not.empty;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/books/{{seed_book_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["books", "{{seed_book_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST /books",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('POST /books -> status 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('POST /books -> body co id, title dung; luu book_id vao collectionVariable', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('id');",
+              "    pm.expect(json.title).to.eql('Service-Oriented Architecture');",
+              "    // Luu id de PUT / DELETE phia sau dung lai",
+              "    pm.collectionVariables.set('book_id', json.id);",
+              "    pm.expect(pm.collectionVariables.get('book_id')).to.eql(json.id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Service-Oriented Architecture\",\n  \"author\": \"Thomas Erl\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/books",
+          "host": ["{{baseUrl}}"],
+          "path": ["books"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PUT /books/{id}",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('PUT /books/{id} -> status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('PUT /books/{id} -> body co id = book_id va title da cap nhat', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.id).to.eql(Number(pm.collectionVariables.get('book_id')));",
+              "    pm.expect(json.title).to.eql('SOA Principles of Service Design');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"SOA Principles of Service Design\",\n  \"author\": \"Thomas Erl\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/books/{{book_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["books", "{{book_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DELETE /books/{id}",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('DELETE /books/{id} -> status 204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test('DELETE /books/{id} -> body rong va dung book_id tu POST', function () {",
+              "    const bookId = String(pm.collectionVariables.get('book_id'));",
+              "    pm.expect(pm.response.text()).to.be.empty;",
+              "    pm.expect(bookId, 'book_id phai duoc POST luu truoc do').to.not.be.oneOf(['', 'undefined', 'null']);",
+              "    pm.expect(pm.request.url.getPath()).to.eql('/books/' + bookId);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/books/{{book_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["books", "{{book_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "error-cases",
+      "item": [
+        {
+          "name": "POST /books (missing title)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('POST /books thieu title -> status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('POST /books thieu title -> body code = VALIDATION va co message', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.code).to.eql('VALIDATION');",
+                  "    pm.expect(json.message).to.be.a('string').and.to.include('title');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"author\": \"Author Without Title\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/books",
+              "host": ["{{baseUrl}}"],
+              "path": ["books"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /books/9999",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('GET /books/9999 -> status 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('GET /books/9999 -> body code = NOT_FOUND va co message', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.code).to.eql('NOT_FOUND');",
+                  "    pm.expect(json.message).to.be.a('string').and.is.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/books/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["books", "9999"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

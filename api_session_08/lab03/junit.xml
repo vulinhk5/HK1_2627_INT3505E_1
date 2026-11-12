@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Books API" tests="7" time="0.145">
+  <testsuite name="GET /books" id="857e6a9e-1d1c-4ca5-bb97-10f8c53036f6" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.065">
+    <testcase name="GET /books -> status 200 OK" time="0.065" classname="GetBooks"/>
+    <testcase name="GET /books -> body la mang, co it nhat 1 sach" time="0.065" classname="GetBooks"/>
+  </testsuite>
+  <testsuite name="GET /books/{id}" id="352f613d-1b8d-430f-b101-cdb3d67978b1" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.015">
+    <testcase name="GET /books/{id} -> status 200 OK" time="0.015" classname="GetBooksId"/>
+    <testcase name="GET /books/{id} -> body dung id va co title" time="0.015" classname="GetBooksId"/>
+  </testsuite>
+  <testsuite name="POST /books" id="9ce0c469-4ecc-4373-9382-1eb50567bb90" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.013">
+    <testcase name="POST /books -> status 201 Created" time="0.013" classname="PostBooks"/>
+    <testcase name="POST /books -> body co id, title dung; luu book_id vao collectionVariable" time="0.013" classname="PostBooks"/>
+  </testsuite>
+  <testsuite name="PUT /books/{id}" id="bb4c65f3-8fa6-4fb6-b579-2cad5d25a01a" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.015">
+    <testcase name="PUT /books/{id} -> status 200 OK" time="0.015" classname="PutBooksId"/>
+    <testcase name="PUT /books/{id} -> body co id = book_id va title da cap nhat" time="0.015" classname="PutBooksId"/>
+  </testsuite>
+  <testsuite name="DELETE /books/{id}" id="41224f89-227c-4b38-ada5-25410aa1ae94" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.011">
+    <testcase name="DELETE /books/{id} -> status 204 No Content" time="0.011" classname="DeleteBooksId"/>
+    <testcase name="DELETE /books/{id} -> body rong va dung book_id tu POST" time="0.011" classname="DeleteBooksId"/>
+  </testsuite>
+  <testsuite name="error-cases / POST /books (missing title)" id="12f1cc52-f55e-4bb8-abca-2e5ca9b8cd5b" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.008">
+    <testcase name="POST /books thieu title -> status 400" time="0.008" classname="ErrorCasesPostBooksMissingTitle"/>
+    <testcase name="POST /books thieu title -> body code = VALIDATION va co message" time="0.008" classname="ErrorCasesPostBooksMissingTitle"/>
+  </testsuite>
+  <testsuite name="error-cases / GET /books/9999" id="e0a7ec8c-45d5-4892-9d78-e966a898c7c0" timestamp="2026-11-12T09:32:20.653Z" tests="2" failures="0" errors="0" time="0.018">
+    <testcase name="GET /books/9999 -> status 404" time="0.018" classname="ErrorCasesGetBooks9999"/>
+    <testcase name="GET /books/9999 -> body code = NOT_FOUND va co message" time="0.018" classname="ErrorCasesGetBooks9999"/>
+  </testsuite>
+</testsuites>
