@@ -1,5 +1,5 @@
-# Lab 3 — Build Newman-runnable collection
-Collection `books-api.postman_collection.json` kiểm thử Books API (Flask) và **chạy độc lập bằng Newman**, không cần mở Postman UI. 
+# Lab 3 - Build Newman-runnable collection
+Collection `books-api.postman_collection.json` kiểm thử Books API (Flask) và chạy độc lập bằng Newman, không cần mở Postman UI. 
 ## Cấu trúc thư mục
 ```
 lab03/
@@ -17,8 +17,7 @@ lab03/
 - Node.js 18 trở lên (có `npm`)
 
 ## Cách chạy
-
-### Cách 1 — Windows PowerShell / terminal VS Code 
+### Cách 1 - Windows PowerShell / terminal VS Code 
 
 ```powershell
 pip install -r requirements.txt
@@ -28,16 +27,14 @@ npm install -g newman
 ```powershell
 python app.py
 ```
-
-Thấy `Running on http://127.0.0.1:5000` là API đã sẵn sàng.
+Thấy `Running on http://127.0.0.1:5000` là API đã sẵn sàng
 
 **Terminal 2 (bấm dấu `+` trong VS Code để mở terminal mới) — chạy Newman:**
 
 ```powershell
 newman run books-api.postman_collection.json -e staging.postman_environment.json -r "cli,junit" --reporter-junit-export junit.xml
 ```
-
-### Cách 2 — macOS / Linux / Git Bash / WSL 
+### Cách 2 - macOS / Linux / Git Bash / WSL 
 
 ```bash
 chmod +x run_tests.sh
