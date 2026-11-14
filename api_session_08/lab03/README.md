@@ -10,7 +10,7 @@ lab03/
 ├── run_tests.sh                        # Script chạy tự động (bash / Git Bash / WSL / macOS / Linux)
 ├── junit.xml                           # Kết quả JUnit, sinh ra sau khi chạy Newman
 ├── README.md
-└── recs/                               # Ảnh chụp kết quả chạy thực tế
+└── res/                               # Ảnh chụp kết quả chạy thực tế
 ```
 ## Yêu cầu môi trường
 - Python 3.9 trở lên
