@@ -1,7 +1,6 @@
-# Lab 08 — API Testing (Lab 01 + Lab 02)
+# Lab 08 - API Testing (Lab 01 + Lab 02)
 Books API (Flask): kiểm thử bằng pytest và lint OpenAPI bằng Spectral.
 ## Cài đặt
-
 ```bash
 git clone https://github.com/TrinhLK/lab08-starter.git
 cd lab08-starter
@@ -10,8 +9,7 @@ python -m venv .venv
 pip install -r requirements.txt  # flask, pytest, jsonschema
 npm install -g @stoplight/spectral-cli
 ```
-## Lab 01 — Test Books API
-
+## Lab 01 - Test Books API
 Chạy: `pytest -v` 
 
 | Test | Kiểm tra |
@@ -25,10 +23,8 @@ Chạy: `pytest -v`
 
 ![pytest](img/lab01-pytest.png)
 
-## Lab 02 — Lint OpenAPI bằng Spectral
-
+## Lab 02 - Lint OpenAPI bằng Spectral
 Chạy: `spectral lint openapi.yaml --ruleset .spectral.yml`
-
 3 lỗi cố ý trong `openapi.yaml` và cách sửa:
 
 | Rule | Vị trí | Cách sửa |
