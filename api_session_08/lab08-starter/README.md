@@ -1,7 +1,6 @@
-# Lab 08 — API Testing (Lab 01 + Lab 02)
+# Lab 08 - API Testing (Lab 01 + Lab 02)
 Books API (Flask): kiểm thử bằng pytest và lint OpenAPI bằng Spectral.
 ## Cài đặt
-
 ```bash
 git clone https://github.com/TrinhLK/lab08-starter.git
 cd lab08-starter
@@ -10,10 +9,8 @@ python -m venv .venv
 pip install -r requirements.txt  # flask, pytest, jsonschema
 npm install -g @stoplight/spectral-cli
 ```
-## Lab 01 — Test Books API
-
+## Lab 01 - Test Books API
 Chạy: `pytest -v` 
-
 | Test | Kiểm tra |
 |---|---|
 | `test_list_books_empty_database_returns_empty_list` | `GET /books` khi CSDL rỗng trả về `[]` (không phải `null`) |
@@ -23,12 +20,11 @@ Chạy: `pytest -v`
 | `test_book_response_matches_schema_and_unknown_field_is_rejected` | (Bonus) Response khớp schema `jsonschema`, không lộ field lạ như `password_hash` |
 | `test_health`, `test_book_can_be_created` | Smoke test |
 
+Kết quả chạy:
 ![pytest](img/lab01-pytest.png)
 
-## Lab 02 — Lint OpenAPI bằng Spectral
-
+## Lab 02 - Lint OpenAPI bằng Spectral
 Chạy: `spectral lint openapi.yaml --ruleset .spectral.yml`
-
 3 lỗi cố ý trong `openapi.yaml` và cách sửa:
 
 | Rule | Vị trí | Cách sửa |
@@ -39,12 +35,10 @@ Chạy: `spectral lint openapi.yaml --ruleset .spectral.yml`
 
 **Custom rule** `response-200-schema-has-fields` (`.spectral.yml`): response 200 phải có schema với ít nhất 1 trường (`properties`, hoặc `items.properties` nếu là mảng). Rule bắt trường hợp spec vẫn hợp lệ nhưng schema rỗng (ví dụ `schema: {type: object}`), khi đó client không biết response có field nào.
 
-Kết quả — trước khi sửa:
-
+Kết quả - trước khi sửa:
 ![spectral before](img/lab02-before.png)
 
 Sau khi sửa (không còn lỗi):
-
 ![spectral after](img/lab02-after.png)
 
 ## Cấu trúc
