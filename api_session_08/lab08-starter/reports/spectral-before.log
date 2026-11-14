@@ -1,7 +1,0 @@
-﻿
-c:/Users/VU THUY LINH/HK1_2627_INT3505E_1/api_session_08/lab08-starter/openapi.yaml
-  24:9   warning  operation-operationId      Operation must have "operationId".                            paths./books.get
-  95:19    error  no-body-on-204             Response HTTP 204 kh├┤ng ─æ╞░ß╗úc khai b├ío content.                paths./books/{id}.delete.responses[204].content
- 110:22    error  book-year-must-be-integer  Book.year phß║úi khai b├ío type integer, khß╗¢p vß╗¢i model Python.  components.schemas.Book.properties.year.type
-
-Γ£û 3 problems (2 errors, 1 warning, 0 infos, 0 hints)
