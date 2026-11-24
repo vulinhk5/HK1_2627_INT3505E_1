@@ -1,5 +1,5 @@
-# INT3505E - Kiến trúc hướng dịch vụ (Service-Oriented Architecture)
-Repository lưu trữ bài tập thực hành môn **Kiến trúc hướng dịch vụ (`HK1_2627_INT3505E_1`)** — Học kỳ I, năm học 2026–2027.
+# INT3505E - Service-Oriented Architecture
+Repository lưu trữ bài tập thực hành môn **Kiến trúc hướng dịch vụ (`HK1_2627_INT3505E_1`)**
 
 ## Thông tin sinh viên
 * **Họ và tên:** Vũ Thùy Linh
