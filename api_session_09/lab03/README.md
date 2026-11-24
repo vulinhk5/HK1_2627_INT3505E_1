@@ -14,7 +14,7 @@ Khởi động server trong thư mục `lab03`:
 cd lab03
 python app.py
 ```
-## Minh chứng chạy
+## Kết quả chạy
 ### Flask API đang chạy ở cổng 5000
 ![Flask API đang chạy ở cổng 5000](img/server.png)
 
